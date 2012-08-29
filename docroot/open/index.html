@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<!-- For ipad/iphone -->
+		<link rel="icon" type="image/png" href="/images/logo-ipad.png">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=0" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+		<link rel="apple-touch-icon" href="/images/logo-ipad.png"/>
+		<link href="/css/helpshift.css" rel="stylesheet" type="text/css" />
+		<script src="/js/jquery-1.7.1.min.js"></script>
+		<script src="/lib/dojo.minified/dojo.min.js" type="text/javascript" djConfig="parseOnLoad:true"></script>
+		<script src="/js/helpshift.js" type="text/javascript"></script>
+		<title>HelpShift Search</title>
+		<script type="text/javascript">
+			window.onload = function(){setTimeout(Helpshift.UI.initialize,1000);}
+			document.ontouchmove = function(e) {
+				e.preventDefault();
+			}
+		</script>
+		<style>
+			.panel_container {
+				left: 0px;
+				padding: 0px;
+				margin: 0px;
+				float: left;
+				border-style: solid;
+				border-width: 5px;
+				border-color: #363137;
+			}
+		</style>
+	</head>	<body id="index">
+		<header style="background-color : #b8e8fb;width:100%;height:100px;border:solid blue 1px;">
+			<center style="padding-top:16px;">
+				<img src="/images/logo.png" width="326px" height="83px"/>
+			</center> 
+		</header>
+		<div id="mainarea">
+			<div>
+				<center>
+					<div id="searchbox" class="searchbox enabledbox" >
+						<input id="searchinput" type="text" onfocus="this.active=true;this.parentElement.setAttribute('class','searchbox activebox');" onblur="if(this.active){this.parentElement.setAttribute('class','searchbox enabledbox');this.active=false;}" onmouseover="if(!this.active){this.parentElement.setAttribute('class','searchbox onbox');}" onmouseout="if(!this.active){this.parentElement.setAttribute('class','searchbox enabledbox');}" onchange="Helpshift.SearchManager.new_search(event);" onkeyup="Helpshift.SearchManager.new_search(event);"/>
+					</div>
+				</center>
+			</div>
+			<div id="results">
+			
+			</div>
+		</div>
+		<footer>
+			
+		</footer>
+		<div id="lightbox" style="display:none;">
+		
+		</div>
+		<img id="loadingbar" src='/images/loading.gif' style="display:none;"/>
+	</body>
+</html>
