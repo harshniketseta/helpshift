@@ -1,0 +1,42 @@
+#MainServer
+<VirtualHost *:80>
+    ServerName helpshift.local
+	DocumentRoot /home/harsh/workspace/helpshift/docroot/open
+    ServerAdmin webmaster@localhost
+
+    ErrorLog "${APACHE_LOG_DIR}/helpshift-error.log"
+    CustomLog "${APACHE_LOG_DIR}/helpshift.log" common
+    LogLevel Warn
+	
+    # DirectoryIndex: sets the file that Apache will serve if a directory
+    # is requested.
+    <IfModule dir_module>
+        DirectoryIndex index.html
+    </IfModule>
+	ProxyRequests Off
+	ProxyVia On
+	
+	<Proxy *>
+		Order deny,allow
+		Allow from all
+	</Proxy>
+	ProxyPass /app/ http://localhost:9050/
+	ProxyPassReverse /app/ http://localhost:9050/
+
+#    WSGIScriptAliasMatch /app "/home/harsh/workspace/helpshift/src/webapp/meta_mainserver.py"
+#    WSGIScriptAliasMatch /output/(xml|html)	"/home/harsh/workspace/helpshift/src/webapp/meta_mainserver.py"
+
+    <Directory "/home/harsh/workspace/helpshift/docroot/open">
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+	<LocationMatch "^/main/">
+        WSGIApplicationGroup HELPSHIFT_MAIN
+		SetHandler wsgi-script
+		Options ExecCGI
+		Order allow,deny
+        Allow from all
+	</LocationMatch>
+
+</VirtualHost>

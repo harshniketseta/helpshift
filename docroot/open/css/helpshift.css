@@ -1,5 +1,5 @@
-#body{
-	position: relative;
+body{
+	overflow: hidden;
 }
 /* Let's get this party started */
 ::-webkit-scrollbar {
@@ -70,10 +70,71 @@
 }
 #loadingbar{
 	width: 354px;
-	height: 100px;
 	top: 50%;
 	margin-top: -50px;
 	left: 50%;
 	margin-left: -177px;
 	position: absolute;
+}
+#results{
+	overflow-y: auto; 
+	height: 100%;
+}
+.results_links {
+padding-left: 5px;
+}
+
+.results_links, .results_zero_click, .results_disambig, .results_links_more, .results_category_more, .results_disambig_more {
+clear: left;
+padding-top: 10px;
+padding-bottom: 10px;
+border: 1px solid #FCFCFC;
+}
+.highlight_2{
+	
+	
+	width: 50%;
+	left: 25%;
+	position: relative;
+}
+.highlight{
+	background-color: #EAEAEA;
+	border: 1px solid #BFBFBF!important;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	-moz-border-radius: 6px;
+	border-radius: 6px;
+	cursor: pointer;
+}
+.icon_fav, .icon_fav2, .icon_category, .icon_disambig {
+float: left;
+}
+
+.links_main {
+text-align: left;
+margin-left: 30px;
+
+word-wrap: break-word;
+font-size: 83.3%;
+}
+.links_deep, .links_more {
+font-size: 83.3%;
+}
+.img_badge {
+display: inline;
+position: relative;
+top: 2px;
+vertical-align: top;
+}
+a:visited {
+color: #6830BB;
+}
+.url, .url a {
+color: #781900!important;
+font-size: 92.8%;
+}
+a {
+text-decoration: none;
+color: #1168CC;
 }
