@@ -1,19 +1,33 @@
 Helpshift = {};
 
 Helpshift.Admin = function() {
+	/*
+	 * Admin singleton object
+	 * Handles getting data and populating it at the right place.
+	 * Also sets Interval so that data is dynamically updated.
+	 */
 	return {
 		interval1 : null,
 		interval2 : null,
 		get_data : function() {
+			/*
+			 * Loads everything.Initial call after loading.
+			 */
 			Helpshift.Admin.get_site_data();
 			Helpshift.Admin.get_user_data();
 		},
 		get_site_data : function() {
+			/*
+			 * Get site data.
+			 */
 			clearInterval(Helpshift.Admin.interval1);
 			doXHR('/app/admin/getsitedata/', Helpshift.Admin.got_site_data, Helpshift.Admin.error, console.log);
 			Helpshift.Admin.interval1 = setInterval(Helpshift.Admin.get_site_data, 5000);
 		},
 		get_url_data : function(url) {
+			/*
+			 * Gets site data but for a specific URL.
+			 */
 			clearInterval(Helpshift.Admin.interval1);
 			url = url.replace('//', "__slashslash__");
 			if (url) {
@@ -24,11 +38,17 @@ Helpshift.Admin = function() {
 			}
 		},
 		get_user_data : function() {
+			/*
+			 * Gets all user data.
+			 */
 			clearInterval(Helpshift.Admin.interval2);
 			doXHR('/app/admin/getuserdata/', Helpshift.Admin.got_user_data, Helpshift.Admin.error, console.log);
 			Helpshift.Admin.interval2 = setInterval(Helpshift.Admin.get_user_data, 5000);
 		},
 		get_spec_user_data : function(user) {
+			/*
+			 * Gets data of a specific user.
+			 */
 			clearInterval(Helpshift.Admin.interval2);
 			if (user) {
 				doXHR('/app/admin/getuserdata/' + user, Helpshift.Admin.got_spec_user_data, Helpshift.Admin.error, console.log);
@@ -38,6 +58,9 @@ Helpshift.Admin = function() {
 			}
 		},
 		got_site_data : function(resp) {
+			/*
+			 * Callback for get_side_data.
+			 */
 			if ( typeof (resp) === "string") {
 				try {
 					resp = JSON.parse(resp);
@@ -60,6 +83,9 @@ Helpshift.Admin = function() {
 			}
 		},
 		got_user_data : function(resp) {
+			/*
+			 * Callback for get_user_data.
+			 */
 			if ( typeof (resp) === "string") {
 				try {
 					resp = JSON.parse(resp);
@@ -78,6 +104,9 @@ Helpshift.Admin = function() {
 			}
 		},
 		got_url_data : function(resp) {
+			/*
+			 * Callback for get_url_data.
+			 */
 			if ( typeof (resp) === "string") {
 				try {
 					resp = JSON.parse(resp);
@@ -91,7 +120,7 @@ Helpshift.Admin = function() {
 				ele.innerHTML = ele.innerHTML + "<li style='height:25px;margin-top:5px;width:100%;position:relative;font-size:20px;font-weight:bold;'><div style='height:25px;margin-top:5px;position:relative;float:left;'>User</div><div style='height:25px;margin-top:5px;position:relative;float:right;'>Date, Time</div></li>"
 				resp.site_data.forEach(function(data) {
 					data = [data.split("'")[1], data.split("'")[3], data.split("'")[5]];
-					html = '<li onclick="Helpshift.Admin.get_site_data();" style="height:25px;margin-bottom:6px;cursor:pointer;width:100%;position:relative;border-bottom:1px solid grey;">';
+					html = '<li onclick="Helpshift.Admin.get_site_data();" style="height:25px;margin-bottom:5px;cursor:pointer;width:100%;position:relative;border-bottom:1px solid grey;">';
 					html = html + '<div title="Click to see list of all URLs and count" style="height:25px;margin-top:5px;position:relative;float:left;">' + data[0] + '</div>';
 					html = html + '<div title="Click to see list of all URLs and count" style="height:25px;margin-top:5px;text-align:right;position:relative;float:right;">';
 					html = html + data[1] + ", " + data[2] + '</div></li>';
@@ -100,6 +129,9 @@ Helpshift.Admin = function() {
 			}
 		},
 		got_spec_user_data : function(resp) {
+			/*
+			 * Callback for get_spec_user_data.
+			 */
 			if ( typeof (resp) === "string") {
 				try {
 					resp = JSON.parse(resp);
@@ -110,18 +142,21 @@ Helpshift.Admin = function() {
 			var ele = document.getElementById("user_data_list");
 			if (ele) {
 				ele.innerHTML = "<li style='height:25px;margin-top:5px;font-size:16px;font-weight:bold;color:blue;'><font style='color:grey'>Details for User:</font>" + resp.user + "</li>";
-				ele.innerHTML = ele.innerHTML + "<li style='height:25px;margin-top:5px;width:100%;position:relative;font-size:20px;font-weight:bold;'><div style='position:relative;float:left;'>URL</div><div style='position:relative;float:right;'>Count</div></li>"
+				ele.innerHTML = ele.innerHTML + "<li style='height:25px;margin-top:5px;width:100%;position:relative;font-size:20px;font-weight:bold;'><div style='position:relative;float:left;'>URL</div><div style='position:relative;float:right;'>Date, Time</div></li>"
 				resp.user_data.forEach(function(data){
-					for (key in data)
-					ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_user_data();" style="height:25px;margin-top:5px;cursor:pointer;width:100%;position:relative;margin:0px 10% 0px 0px"><div title="Click to see list of all users" style="height:25px;margin-top:5px;position:relative;float:left;border-bottom:1px solid grey;width:50%;">' + key + '</div><div title="Click to see list of all users" style="height:25px;margin-top:5px;position:relative;float:right;border-bottom:1px solid grey;width:50%;text-align:right;">' + data[key] + '</div></li>';	
+					for (key in data){
+						date_time = [data[key].split("'")[1], data[key].split("'")[3]];
+						ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_user_data();" style="height:25px;margin-top:5px;cursor:pointer;width:100%;position:relative;margin:0px 10% 0px 0px"><div title="Click to see list of all users" style="height:25px;margin-top:5px;position:relative;float:left;border-bottom:1px solid grey;width:50%;">' + key + '</div><div title="Click to see list of all users" style="height:25px;margin-top:5px;position:relative;float:right;border-bottom:1px solid grey;width:50%;text-align:right;">' + date_time[0] +', '+ date_time[1] + '</div></li>';
+					}	
 				});
 				
 			}
 		},
 		error : function() {
-			console.log("Some error in getting admin data");
-			clearInterval(Helpshift.Admin.interval1);
-			clearInterval(Helpshift.Admin.interval2);
+			/*
+			 *Logs a error message.
+			 */
+			Helpshift.UI.error("Some error in getting data from Admin.");
 		}
 	}
 }();
@@ -180,15 +215,31 @@ Helpshift.UI = function() {
 				this.loadingbar = false;
 			}
 		},
+		error : function(msg){
+			var parent = document.getElementById('index');
+			notification_dom = dojo.create('div', { id: "notification", class: "notification"}, parent);
+			html = "<div style='margin: 7px 0px 7px 20px;float: left;'><span><font size='2' face='courier' color=white>"+ msg +"</font><span></div><img src='/images/close_button.png' style='width:16px;height: 16px;float:right;margin: 7px 10px; cursor:pointer;' onclick='dojo.destroy(\"notification\")'></img>"
+			notification_dom.innerHTML = html;
+			setTimeout(function(){ dojo.destroy("notification"); }, 2000);
+		}
 	}
 }();
 
 Helpshift.SearchManager = function() {
+	/*
+	 * Healpshift.SearchManager is responsible to request searches and save Helpshift.Search objects in the search 
+	 */
 	var query_result_map = {};
 	var pending_query_map = {};
 	var search_timer = "";
 	return {
 		new_search : function(event) {
+			/*
+			 * Listens to events.Checks type of events to decide if it is a silent query or an active one.
+			 * An active query shows loading bar.
+			 * 
+			 * Inactive query happen only when the user shows an inactivity of 1 second.
+			 */
 			clearTimeout(this.search_timer);
 			if (event.type === 'keyup')
 				this.search_timer = setTimeout(Helpshift.SearchManager.get_search, 1000);
@@ -196,6 +247,10 @@ Helpshift.SearchManager = function() {
 				Helpshift.SearchManager.get_search( active = true);
 		},
 		get_search : function(active) {
+			/*
+			 * Checks the internal data structures for the requested query.
+			 * If present loads it, otherwise makes the creates a new Helpshift.Search object with the query. 
+			 */
 			var ele = document.getElementById("searchinput");
 			if (ele)
 				var query = ele.value + "";
@@ -209,16 +264,52 @@ Helpshift.SearchManager = function() {
 				Helpshift.UI.load_result(result);
 		},
 		got_result : function(result) {
+			/*
+			 * Updates structures with the new result recieved.
+			 * Deletes entry from pending_query_map
+			 * Makes entry in query_result_map.
+			 * Also sets up a timeout for cleanup of query.Value at the moment is 5mins.
+			 * Should be given by the server maybe.  
+			 */
 			delete pending_query_map[result.query];
 			query_result_map[result.query] = result;
+			setTimeout(function(){
+				Helpshift.SearchManager.del_query(result.query);
+			}, 300000)
 		},
 		made_request : function(query) {
+			/*
+			 * Saves every query in progress so as to avoid multiple requests.
+			 */
 			pending_query_map[query] = true;
 		},
+		del_query : function(query){
+			/*
+			 * Deletes the given query from the query_result_map.
+			 * 
+			 * And also from pending_result_map(just in case).
+			 */
+			try{
+				delete query_result_map[result.query];	
+			}catch(e){
+				
+			}
+			try{
+				delete pending_query_map[result.query];	
+			}catch(e){
+				
+			}
+		}
 	}
 }();
 
 Helpshift.Search = function(query, active) {
+	/*
+	 * Search Object.
+	 * Every unique query creates a new search object.
+	 * The search object saves the raw_result from the Search API, 
+	 * parses it to create Helpshift.Result objects and populates its own data also.
+	 */
 	var self = {
 		result_array : [],
 		relatedtopics_array : [],
@@ -231,13 +322,13 @@ Helpshift.Search = function(query, active) {
 					try {
 						self._raw_result = JSON.parse(res.data);
 					} catch (e) {
-						self.error("Error in parsing result");
+						self.error("Error in parsing data from server");
 					}
 				} else
 					self._raw_result = res.data;
 				self.process_result();
 			} else
-				self.error(res)
+				self.error("Error recieved from Server:"+res.data);
 		},
 		get_result : function() {
 			return self._raw_result;
@@ -256,8 +347,9 @@ Helpshift.Search = function(query, active) {
 				self.relatedtopics_array.push(Helpshift.Search.Result(self.query, relatedtopic))
 			});
 		},
-		error : function(res) {
-
+		error : function(msg) {
+			Helpshift.SearchManager.del_query(self.query);
+			Helpshift.UI.error(msg);		//Inform user.
 			//error handling, retrying and cleanup if necessary here.
 		},
 		get_definition : function() {
@@ -309,7 +401,10 @@ Helpshift.Search = function(query, active) {
 }
 
 Helpshift.Search.Result = function(query, relatedresult) {
-
+/*
+ * Result object.
+ * Helps in parsing and formatting of results.
+ */
 	var self = {
 		query : "",
 		domain : "",
@@ -342,6 +437,11 @@ Helpshift.Search.Result = function(query, relatedresult) {
 }
 //Helper functions//
 function doXHR(url, success, failure, logger) {
+	/*
+	 * Takes url, success callback, failure callback and logger.
+	 * Make async requests to the specified url.
+	 * Uses dojo library.
+	 */
 	var xhrArgs = {
 		url : url,
 		handleAs : "json",

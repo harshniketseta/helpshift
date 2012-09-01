@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="$0 --host <HostName> [--domain] [--dir <ProjectDirectory>] [--force|-f] [--install|-i]"
+USAGE="$0 --host <HostName> [--domain] [--dir <ProjectDirectory>] [--force|-f] [--install|-i] [--help]"
 HOSTNAME="helpshift"
 PROJDIR=${PROJDIR:-`pwd`}
 APACHE_PATH=/etc/apache2/sites-available
@@ -35,7 +35,7 @@ then
     exit 1;
 fi
 
-sed -e s:__HOST__:$HOSTNAME:g -e s:__PROJDIR__:$PROJDIR:g -e s:__DOMAIN__:.${DOMAIN}:g $INFILE > /tmp/$HOSTNAME
+sed -e s:__HOST__:$HOSTNAME:g -e s:__PROJDIR__:$PROJDIR:g -e s:__DOMAIN__:.${DOMAIN}:g ${PROJDIR}/${INFILE} > /tmp/$HOSTNAME
 sudo cp /tmp/$HOSTNAME $APACHE_PATH/$HOSTNAME
 sudo chmod +r $APACHE_PATH/$HOSTNAME
 echo $APACHE_PATH/$HOSTNAME created.
@@ -48,5 +48,29 @@ else
     echo host name $1 already exists in /etc/hosts. Not modifying.
 fi
 
+sudo a2ensite $HOSTNAME
+if [ $? -ne 0 ]
+then
+	sudo rm $APACHE_PATH/$HOSTNAME  
+	echo "Unexpected error.. Rolling back.. (a2ensite failed)"
+	sudo rm /tmp/$HOSTNAME
+	exit 1;
+fi
+sudo rm /tmp/$HOSTNAME
+
+#Creating logs directory
+if [ ! -d $PROJDIR/logs ]
+then
+    mkdir $PROJDIR/logs
+    echo $PROJDIR/logs created.
+fi
+sudo chmod -R 777 $PROJDIR/logs
+
+sudo /etc/init.d/apache2 restart
+if [ $? -ne 0 ]
+then
+echo "Unexpected error.. apache could not be restarted.."
+echo "Restart manually."
+fi
 
 xdg-open "http://$HOSTNAME.$DOMAIN"

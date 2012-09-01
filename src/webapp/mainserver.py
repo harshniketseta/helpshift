@@ -8,19 +8,20 @@ from __future__ import division
 import bottle
 import logging 
 from common.singleton import Server
-from webapp.helper_functions import webrequest, wrap_links, auth, value_sort
+from webapp.helper_functions import webrequest, wrap_links, auth, value_sort,\
+    time_sort, url_time_sort
 from common.decorators import get_url, track_data, wrap_exp
 
 def get_user(environ):
     return environ.get('REMOTE_USER', 'unknown')
 
 
-@bottle.route("/index",method=['GET','POST'])
+@bottle.route("/index",method='GET')
 @wrap_exp()
 def index():
     return "Search Server is Running"
 
-@bottle.route('/search/:query#.*#',method=['GET','POST'])
+@bottle.route('/search/:query#.*#',method='GET')
 @wrap_exp()
 def search(query):
     '''
@@ -83,6 +84,7 @@ def sitedata(url=None):
     logging.debug("confirm: %s,site_data: %s", confirm, site_data)
     if confirm:
         ret = site_data
+        ret.sort(cmp=url_time_sort)
         return dict(url=confirm, site_data = ret)
     else:
         ret = []
@@ -106,8 +108,9 @@ def userdata(user=None):
     if confirm:
         ret = []
         for key, val in user_data.iteritems():
-            ret.append( { key : len(val) })
-            ret.sort(cmp=value_sort)
+            for v in val:
+                ret.append( { key : v })
+            ret.sort(cmp=time_sort)
         return dict(user = confirm, user_data = ret)
     else:
         ret = user_data.keys()

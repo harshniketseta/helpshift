@@ -11,18 +11,23 @@ from common.singleton import Server
 
 def get_url():
     '''
+    Extracts the URL from GET.
+    Does the correct replacements.
+    And calls the func with the url.
     '''
     def decorator(func):
         def wrapper(*args, **kargs):
             url = bottle.request.GET.get('url', '#') #@UndefinedVariable
             logging.debug("URL:%s",url)
-            url = url.replace('__slashslash__', '//')
+            url = url.replace(Server.get_config()["Search"]["replace_with"], Server.get_config()["Search"]["match_pattern"])
             return func(*args, url=url, **kargs)
         return wrapper
     return decorator
 
 def track_data():
     '''
+    Extracts the users IP Address.
+    Requests to update data.Depending upon the life the cache, the request may or may not be accepted.
     '''
     def decorator(func):
         def wrapper(*args, **kargs):

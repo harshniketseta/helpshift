@@ -1,40 +1,33 @@
-def wrap_links(response):
+def wrap_links(response):       
     '''
-    At the moment wrapping links according to DuckDuckGo structure.
+    At the moment wrapping links according to DuckDuckGo structure. 
     '''
+    print "Request for wrapping links"
     data = response['data']
-    response['data'] = recursive_dict_wrap(data)
+    try:
+        response['data'] = recursive_wrap(data)
+    except Exception as e:
+        print "Exception in wrap_links:%s",e
+    print "Returning wrap links"
     return response
 
-def recursive_dict_wrap(data):
-    for key, value in data.iteritems():
-        print "In dict_wrap", key , value , type(value)
-        if isinstance(value, dict):
-            print "calling recursive_dict_wrap"
-            data[key] = recursive_dict_wrap(value)
-        if isinstance(value, list):
-            print "calling recursive_list_wrap"
-            data[key] = recursive_list_wrap(value)
-        else:
-            print "setting ", key, "with value ", value
-            data[key] = value
-    print "retruning from  recursive_dict_wrap:", data
-    return data
-
-def recursive_list_wrap(data):
-    new_data = []
-    for d in data:
-        print "In list_wrap", d , type(d)
-        if isinstance(d, dict):
-            print "calling recursive_dict_wrap"
-            new_data.append(recursive_dict_wrap(d))
-        if isinstance(d, list):
-            print "calling recursive_list_wrap"
-            new_data.append(recursive_list_wrap(d))
-        else:
-            new_data.append(d)
-    print "retruning from  recursive_list_wrap:", new_data
-    return new_data
+def recursive_wrap(data):
+    if isinstance(data, dict):
+        for key, value in data.iteritems():
+            data[key] = run_replacer(value) if key in ["Result", "FirstURL"] else recursive_wrap(value)  
+        return data
+    elif isinstance(data, list):
+        new_data = map(recursive_wrap, data)
+        return new_data
+    else:
+        return data
+        
+def run_replacer(val):
+    if isinstance(val, list):
+        new_val = map(run_replacer, val)
+        return new_val
+    else:
+        return val.replace("http://", "http://helpshift.local/app/link?url=http:__slashslash__")
 
 response = dict(status="success", data={
    "Definition" : "chrome definition: chromium.",
@@ -364,4 +357,5 @@ response = dict(status="success", data={
    "Results" : [],
    "AbstractURL" : "https://en.wikipedia.org/wiki/Chrome"
 })
+
 print wrap_links(response)
