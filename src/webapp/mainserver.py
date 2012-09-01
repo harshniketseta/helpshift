@@ -6,26 +6,21 @@ Created on 28-Aug-2012
 
 from __future__ import division
 import bottle
-import os, sys
-import logging
+import logging 
+from common.serverconfig import ServerConfig
+from webapp.helper_functions import webrequest, wrap_links, auth
+from common.decorators import get_url, track_data, wrap_exp
 
-FILE = os.path.abspath(__file__) if not hasattr(sys, 'frozen') else os.path.abspath(sys.executable)  
-DIR = os.path.dirname(FILE)
-PROJ_DIR = os.path.abspath(DIR + os.sep + '..')  # assumes we are 1 level deeper than the project root
-sys.path.append(PROJ_DIR)  if not hasattr(sys, 'frozen') else sys.path.append(DIR)
-os.chdir(DIR) # change to curr dir (relative to this file) 
-
-from webapp import helper_functions
-from webapp.helper_functions import ServerConfig, webrequest, wrap_links,\
-    get_url, track_data, auth
 
 def get_user(environ):
     return environ.get('REMOTE_USER', 'unknown')
 
+@wrap_exp()
 @bottle.route("/index",method=['GET','POST'])
 def index():
     return "Search Server is Running"
 
+@wrap_exp()
 @bottle.route('/search/:query#.*#',method=['GET','POST'])
 def search(query):
     '''
@@ -43,6 +38,7 @@ def search(query):
         return wrap_links(webrequest(url='http://api.duckduckgo.com/?q='+query+'&format=json&pretty=1'))
     return do_search(query)
 
+@wrap_exp()
 @bottle.route('/link',method='GET')
 @get_url()
 @track_data()
@@ -55,8 +51,10 @@ def link(url):
     '''    
     bottle.redirect(url)
 
+@wrap_exp()
 @bottle.route('/admin',method='GET')
 @bottle.auth_basic(auth)
+@bottle.view("../../templates/admin")
 def admin():
     '''
     Takes path from the route and tells Apache to server the file.
@@ -65,6 +63,47 @@ def admin():
     @type path: str
     '''    
     return dict(user_data=ServerConfig.get_user_data(), site_data=ServerConfig.get_site_data())
+
+@wrap_exp()
+@bottle.route('/admin/getsitedata/:url#.*#',method='GET')
+@bottle.auth_basic(auth)
+def sitedata(url=None):
+    '''
+    Takes path from the route and tells Apache to server the file.
+    
+    @param path: The path to the file relative to root.
+    @type path: str
+    '''
+    confirm, site_data = ServerConfig.get_site_data(url)
+    if confirm:
+        ret = site_data
+        return dict(url=confirm, site_data = ret)
+    else:
+        ret = []
+        for key, val in site_data.iteritems():
+            ret.append( { key : len(val) })
+        return dict(site_data = ret)
+
+@wrap_exp()
+@bottle.route('/admin/getuserdata/:user#.*#',method='GET')
+@bottle.auth_basic(auth)
+def userdata(user=None):
+    '''
+    Takes path from the route and tells Apache to server the file.
+    
+    @param path: The path to the file relative to root.
+    @type path: str
+    '''    
+    confirm, user_data = ServerConfig.get_user_data(user)
+    
+    if confirm:
+        ret = {}
+        for key, val in user_data.iteritems():
+            ret[key] = len(val)
+        return dict(user = confirm, user_data = ret)
+    else:
+        ret = user_data.keys()
+        return dict(user_data = ret)
 
 def get_application(**kargs):
     '''
@@ -76,12 +115,3 @@ def get_application(**kargs):
     logging.debug('Main Web Service Started')
 
     return ServerConfig.get_application()
-
-if __name__ == '__main__':
-    
-    parser=helper_functions.getparser(defhost='localhost',defport=9050)
-    opt, args = parser.parse_args(sys.argv[1:])
-
-    bottle.debug(True)
-    app = get_application(**helper_functions.get_config_files(file_path=FILE, proj_dir=PROJ_DIR))
-    bottle.run(app=app, host=opt.host, port=opt.port)

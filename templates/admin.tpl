@@ -11,30 +11,30 @@
 		<script src="/js/jquery-1.7.1.min.js"></script>
 		<script src="/lib/dojo.minified/dojo.min.js" type="text/javascript" djConfig="parseOnLoad:true"></script>
 		<script src="/js/helpshift.js" type="text/javascript"></script>
-		<title>HelpShift Search</title>
+		<title>HelpShift Admin</title>
 		<script type="text/javascript">
-			window.onload = function(){setTimeout(Helpshift.UI.initialize,1000);}
+			window.onload = function(){setTimeout(Helpshift.Admin.get_data,1000);}
 			document.ontouchmove = function(e) {
 				e.preventDefault();
 			}
 		</script>
-	</head>	<body id="index">
-		<a href="/app/admin"><img id="admin_img" alt="" src="/images/admin.png" style="width: 48px;height: 48px; position: absolute;top: 10px; right: 10px;display: none;" class="admin_img"/></a>
+	</head>
+	<body id="index">
 		<header class="header">
 			<center style="padding-top:16px;">
-				<a href="/"><img src="/images/logo.png" onclick="" width="326px" height="83px"/></a>
+				<img src="/images/logo.png" width="326px" height="83px"/>
 			</center>
 		</header>
 		<div id="mainarea">
-			<div>
-				<center>
-					<div id="searchbox" class="searchbox enabledbox" >
-						<input id="searchinput" type="text" onfocus="this.active=true;this.parentElement.setAttribute('class','searchbox activebox');" onblur="if(this.active){this.parentElement.setAttribute('class','searchbox enabledbox');this.active=false;}" onmouseover="if(!this.active){this.parentElement.setAttribute('class','searchbox onbox');}" onmouseout="if(!this.active){this.parentElement.setAttribute('class','searchbox enabledbox');}" onchange="Helpshift.SearchManager.new_search(event);" onkeyup="Helpshift.SearchManager.new_search(event);"/>
-					</div>
-				</center>
-			</div>
-			<div id="results">
-			
+			<div id="data">
+				<div id="site_data">
+					<ul id="site_data_list" style="list-style: none;padding-left: 0px;margin:5px;">
+					</ul>
+				</div>
+				<div id="user_data">
+					<ul id="user_data_list" style="list-style: none;padding-left: 0px;margin:5px;">
+					</ul>
+				</div>
 			</div>
 		</div>
 		<footer class="footer">

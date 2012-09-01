@@ -1,1 +1,1 @@
-__many__ = integer
+__many__ = list

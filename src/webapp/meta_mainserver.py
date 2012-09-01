@@ -5,6 +5,7 @@ Created on 28-Aug-2012
 '''
 import bottle
 
+
 '''
 Apache requires a file in source file (cannot deal with only .pyc). To enable this, we have created
 a generic meta_<servername>.py file. If the conventions are followed, we just need to copy this file to the
@@ -29,11 +30,12 @@ FILE = os.path.abspath(__file__) if not hasattr(sys, 'frozen') else os.path.absp
 DIR = os.path.dirname(FILE)
 PROJ_DIR = os.path.abspath(DIR + os.sep + '..')  # assumes we are 1 level deeper than the project root
 sys.path.append(PROJ_DIR)  if not hasattr(sys, 'frozen') else sys.path.append(DIR)
+os.chdir(DIR) # change to curr dir (relative to this file)
 
 from webapp.mainserver import get_application
-from webapp import helper_functions
+from common import serverconfig
 
-application = get_application(**helper_functions.get_config_files(file_path=FILE, proj_dir=PROJ_DIR))
+application = get_application(**serverconfig.get_config_files(file_path=FILE, proj_dir=PROJ_DIR))
 
 if __name__ == "__main__":
     bottle.run(app=application, host="localhost", port=9050)

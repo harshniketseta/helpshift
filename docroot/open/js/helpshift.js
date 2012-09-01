@@ -1,31 +1,138 @@
 Helpshift = {};
 
+Helpshift.Admin = function(){
+	return {
+		interval1 : null,
+		interval2 : null,
+		get_data : function(){
+			Helpshift.Admin.get_site_data();
+			Helpshift.Admin.get_user_data();
+		},
+		get_site_data : function(){
+			clearInterval(Helpshift.Admin.interval1);
+			doXHR('/app/admin/getsitedata/', Helpshift.Admin.got_site_data, Helpshift.Admin.error, console.log);
+			Helpshift.Admin.interval1 = setInterval(Helpshift.Admin.get_site_data, 5000);
+		},
+		get_url_data : function(url){
+			clearInterval(Helpshift.Admin.interval1);
+			if(url){
+				doXHR('/app/admin/getsitedata/'+url, Helpshift.Admin.got_url_data, Helpshift.Admin.error, console.log);
+				Helpshift.Admin.interval1 = setInterval(function(){Helpshift.Admin.get_url_data(url)}, 5000);
+			}
+		},
+		get_user_data : function(){
+			clearInterval(Helpshift.Admin.interval2);
+			doXHR('/app/admin/getuserdata/', Helpshift.Admin.got_user_data, Helpshift.Admin.error, console.log);
+			Helpshift.Admin.interval2 = setInterval(Helpshift.Admin.get_user_data, 5000);
+		},
+		get_spec_user_data : function(user){
+			clearInterval(Helpshift.Admin.interval2);
+			if(user){
+				doXHR('/app/admin/getuserdata/'+user, Helpshift.Admin.got_spec_user_data, Helpshift.Admin.error, console.log);
+				Helpshift.Admin.interval2 = setInterval(function(){Helpshift.Admin.get_spec_user_data(user)}, 5000);
+			}
+		},
+		got_site_data : function(resp){
+			if(typeof(resp) === "string"){
+				try{
+					resp = JSON.parse(resp);
+				}catch (e) {
+					return;
+				}
+			}
+			var ele = document.getElementById("site_data_list");
+			if(ele){
+				ele.innerHTML = "<li style='height:25px;width:100%;position:relative;margin:0px 10% 0px 0px;font-size:20px;font-weight:bold;'><div style='position:relative;float:left;'>URL</div><div style='position:relative;float:right;'>Count</div></li>";
+				resp.site_data.forEach(function(data){for(key in data){ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_url_data(\''+key+'\');" style="cursor:pointer;width:100%;position:relative;margin:0px 10% 0px 0px"><div style="border-bottom:1px solid grey;width:50%;position:relative;float:left;">'+key+'</div><div style="border-bottom:1px solid grey;width:50%;text-align:right;position:relative;float:right;">'+data[key]+'</div></li>';}});
+			}
+		},
+		got_user_data : function(resp){
+			if(typeof(resp) === "string"){
+				try{
+					resp = JSON.parse(resp);
+				}catch (e) {
+					return;
+				}
+			}
+			var ele = document.getElementById("user_data_list");
+			if(ele){
+				ele.innerHTML = "<li style='height:25px;font-size:20px;font-weight:bold;'>List of Users:</li>";
+				resp.user_data.forEach(function(data){ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_spec_user_data(\''+data+'\');" style="cursor:pointer;"><div style="position:relative;border-bottom:1px solid grey;width:100%;text-align:left;">'+data+'</div></li>';});
+			}
+		},
+		got_url_data : function(resp){
+			if(typeof(resp) === "string"){
+				try{
+					resp = JSON.parse(resp);
+				}catch (e) {
+					return;
+				}
+			}
+			var ele = document.getElementById("site_data_list");
+			if(ele){
+				ele.innerHTML = "<li style='height:20px;width:100%;position:relative;margin:0px 10% 0px 0px;font-size:16px;font-weight:bold;'><div style='position:relative;float:left;color:blue;'><font style='color:grey'>Data for URL:</font>"+resp.url+"</div><div style='position:relative;float:right;'></div></li>";
+				ele.innerHTML = ele.innerHTML + "<li style='height:25px;width:100%;position:relative;margin:0px 10% 0px 0px;font-size:20px;font-weight:bold;'><div style='position:relative;float:left;'>User</div><div style='position:relative;float:right;'>Date, Time</div></li>"
+				resp.site_data.forEach(function(data){data = [data.split("'")[1], data.split("'")[3], data.split("'")[5]];ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_site_data();" style="cursor:pointer;width:100%;position:relative;margin:0px 10% 0px 0px"><div style="position:relative;float:left;border-bottom:1px solid grey;width:50%;">'+data[0]+'</div><div style="position:relative;float:right;border-bottom:1px solid grey;width:50%;text-align:right;">'+data[1]+', '+data[2]+'</div></li>';});
+			}
+		},
+		got_spec_user_data : function(resp){
+			if(typeof(resp) === "string"){
+				try{
+					resp = JSON.parse(resp);
+				}catch (e) {
+					return;
+				}
+			}
+			var ele = document.getElementById("user_data_list");
+			if(ele){
+				ele.innerHTML = "<li style='height:20px;font-size:16px;font-weight:bold;color:blue;'><font style='color:grey'>Details for User:</font>"+resp.user+"</li>";
+				ele.innerHTML = ele.innerHTML + "<li style='height:25px;width:100%;position:relative;margin:0px 10% 0px 0px;font-size:20px;font-weight:bold;'><div style='position:relative;float:left;'>URL</div><div style='position:relative;float:right;'>Count</div></li>"
+				for(key in resp.user_data)
+					ele.innerHTML = ele.innerHTML + '<li onclick="Helpshift.Admin.get_user_data();" style="cursor:pointer;width:100%;position:relative;margin:0px 10% 0px 0px"><div style="position:relative;float:left;border-bottom:1px solid grey;width:50%;">'+key+'</div><div style="position:relative;float:right;border-bottom:1px solid grey;width:50%;text-align:right;">'+resp.user_data[key]+'</div></li>';
+			}
+		},
+		error : function(){
+			console.log("Some error in getting admin data");
+			clearInterval(Helpshift.Admin.interval1);
+			clearInterval(Helpshift.Admin.interval2);
+		}
+	}
+}();
+
 Helpshift.UI = function(){
 	return {
 		loadingbar : false,
 		initialize : function(){
 			$('#searchbox').fadeIn(100, function(){
 				document.getElementById('searchinput').focus();
+			setTimeout(function(){
+				$('#admin_img').fadeIn(100, function(){
+					document.getElementById('admin_img').setAttribute("class", "animated wiggle");
+					setTimeout(function(){
+						document.getElementById('admin_img').setAttribute("class", "admin_img");
+					}, 1000);
+				});
+			}, 5000);
 			if(window.location.search){
 				document.getElementById('searchinput').value = window.location.search.split('=')[1].split('+')[0];
 				Helpshift.SearchManager.get_search(true);
 			}
 			});
-			
-			
 			//initialize UI here
 		},
 		load_result : function(search_obj){
 			Helpshift.SearchManager.got_result(search_obj);
 			Helpshift.UI.hide_loadingbar();
 			var ele = document.getElementById("results");
-			ele.innerHTML = "";
-			if(search_obj.result_array.length == 0 && search_obj.relatedtopics_array.length == 0){
-				ele.innerHTML = "<center>No results found</center>";
-				return;
+			if(ele){
+				ele.innerHTML = "";
+				if(search_obj.result_array.length == 0 && search_obj.relatedtopics_array.length == 0){
+					ele.innerHTML = "<center>No results found</center>";
+					return;
+				}
+				search_obj.result_array.forEach(function(res){ele.innerHTML = ele.innerHTML + ( res.format() || '' );})
+				search_obj.relatedtopics_array.forEach(function(res){ele.innerHTML = ele.innerHTML + ( res.format() || '' );})
 			}
-			search_obj.result_array.forEach(function(res){ele.innerHTML = ele.innerHTML + ( res.format() || '' );})
-			search_obj.relatedtopics_array.forEach(function(res){ele.innerHTML = ele.innerHTML + ( res.format() || '' );})
 			//load result here
 		},
 		toggle : function(ele){
@@ -107,8 +214,13 @@ Helpshift.Search = function(query, active){
 		set_result : function(res){
 //			coonsole.log(res);
 			if(res.status === "success"){
-				if(typeof(res) === "string") 
-					self._raw_result = JSON.parse(res.data);
+				if(typeof(res) === "string"){
+					try{
+						self._raw_result = JSON.parse(res.data);
+					}catch (e) {
+						self.error("Error in parsing result");
+					}
+				} 
 				else
 					self._raw_result = res.data;
 				self.process_result();
