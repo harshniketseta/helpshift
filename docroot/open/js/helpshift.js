@@ -135,25 +135,6 @@ Helpshift.UI = function(){
 			}
 			//load result here
 		},
-		toggle : function(ele){
-			if(typeof(ele) === "string")
-				var ele = document.getElementById(ele);
-			switch (ele.id) {
-			case 'loadingbar':
-				if(ele.style.display === "none"){
-					$('#loadingbar').fadeIn(1000);
-					$('#lightbox').fadeIn(500);
-				}
-				else{
-					$('#loadingbar').fadeOut(500);
-					$('#lightbox').fadeOut(250);
-				}
-				break;
-
-			default:
-				break;
-			}
-		},
 		show_loadingbar : function(){
 			if(Helpshift.UI.loadingbar == false){
 				$('#loadingbar').fadeIn(1000);
