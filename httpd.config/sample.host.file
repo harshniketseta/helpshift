@@ -1,0 +1,43 @@
+#MainServer
+<VirtualHost *:80>
+    ServerName __HOST____DOMAIN__
+	DocumentRoot __PROJDIR__/docroot/open
+    ServerAdmin webmaster@localhost
+
+    ErrorLog "${APACHE_LOG_DIR}/__HOST__-error.log"
+    CustomLog "${APACHE_LOG_DIR}/__HOST__.log" common
+    LogLevel Warn
+	
+    # DirectoryIndex: sets the file that Apache will serve if a directory
+    # is requested.
+    <IfModule dir_module>
+        DirectoryIndex index.html
+    </IfModule>
+
+#	ProxyRequests Off
+#	ProxyVia On
+#	
+#	<Proxy *>
+#		Order deny,allow
+#		Allow from all
+#	</Proxy>
+#	ProxyPass /app/ http://localhost:9050/
+#	ProxyPassReverse /app/ http://localhost:9050/
+
+    WSGIScriptAlias /app "__PROJDIR__/src/webapp/meta_mainserver.py"
+    WSGIPassAuthorization On
+    
+    <Directory "__PROJDIR__/docroot/open">
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+	<LocationMatch "^/app">
+        WSGIApplicationGroup __HOST___MAIN
+		SetHandler wsgi-script
+		Options ExecCGI
+		Order allow,deny
+        Allow from all
+	</LocationMatch>
+
+</VirtualHost>

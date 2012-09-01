@@ -7,21 +7,21 @@ Created on 28-Aug-2012
 from __future__ import division
 import bottle
 import logging 
-from common.serverconfig import ServerConfig
-from webapp.helper_functions import webrequest, wrap_links, auth
+from common.singleton import Server
+from webapp.helper_functions import webrequest, wrap_links, auth, value_sort
 from common.decorators import get_url, track_data, wrap_exp
-
 
 def get_user(environ):
     return environ.get('REMOTE_USER', 'unknown')
 
-@wrap_exp()
+
 @bottle.route("/index",method=['GET','POST'])
+@wrap_exp()
 def index():
     return "Search Server is Running"
 
-@wrap_exp()
 @bottle.route('/search/:query#.*#',method=['GET','POST'])
+@wrap_exp()
 def search(query):
     '''
     Takes query and returns wraped results.
@@ -31,15 +31,15 @@ def search(query):
     
     @return: Wrapped Results.
     '''
-    logging.debug("Query:%s",query)
-    @ServerConfig.cache.cache(expire=3600)
+    logging.debug("Query Recieved:%s",query)
+    @Server.cache.cache(expire=3600)
     def do_search(query):
-        logging.debug("Fetching query from DuckDuckGo API")
+        logging.debug("Query not in cache, Fetching from DuckDuckGo API")
         return wrap_links(webrequest(url='http://api.duckduckgo.com/?q='+query+'&format=json&pretty=1'))
     return do_search(query)
 
-@wrap_exp()
 @bottle.route('/link',method='GET')
+@wrap_exp()
 @get_url()
 @track_data()
 def link(url):
@@ -48,25 +48,27 @@ def link(url):
     
     @param path: The path to the file relative to root.
     @type path: str
-    '''    
+    '''
+    logging.debug("Redirecting to URL:%s",url)    
     bottle.redirect(url)
 
-@wrap_exp()
 @bottle.route('/admin',method='GET')
 @bottle.auth_basic(auth)
 @bottle.view("../../templates/admin")
+@wrap_exp()
 def admin():
     '''
     Takes path from the route and tells Apache to server the file.
     
     @param path: The path to the file relative to root.
     @type path: str
-    '''    
-    return dict(user_data=ServerConfig.get_user_data(), site_data=ServerConfig.get_site_data())
+    '''
+    
+    return dict(user_data=Server.get_user_data(), site_data=Server.get_site_data())
 
-@wrap_exp()
 @bottle.route('/admin/getsitedata/:url#.*#',method='GET')
 @bottle.auth_basic(auth)
+@wrap_exp()
 def sitedata(url=None):
     '''
     Takes path from the route and tells Apache to server the file.
@@ -74,7 +76,11 @@ def sitedata(url=None):
     @param path: The path to the file relative to root.
     @type path: str
     '''
-    confirm, site_data = ServerConfig.get_site_data(url)
+    if url:
+        url = url.replace('__slashslash__', '//')
+    logging.debug("URL Recieved: %s", url)
+    confirm, site_data = Server.get_site_data(url)
+    logging.debug("confirm: %s,site_data: %s", confirm, site_data)
     if confirm:
         ret = site_data
         return dict(url=confirm, site_data = ret)
@@ -82,11 +88,12 @@ def sitedata(url=None):
         ret = []
         for key, val in site_data.iteritems():
             ret.append( { key : len(val) })
+            ret.sort(cmp=value_sort)
         return dict(site_data = ret)
 
-@wrap_exp()
 @bottle.route('/admin/getuserdata/:user#.*#',method='GET')
 @bottle.auth_basic(auth)
+@wrap_exp()
 def userdata(user=None):
     '''
     Takes path from the route and tells Apache to server the file.
@@ -94,12 +101,13 @@ def userdata(user=None):
     @param path: The path to the file relative to root.
     @type path: str
     '''    
-    confirm, user_data = ServerConfig.get_user_data(user)
+    confirm, user_data = Server.get_user_data(user)
     
     if confirm:
-        ret = {}
+        ret = []
         for key, val in user_data.iteritems():
-            ret[key] = len(val)
+            ret.append( { key : len(val) })
+            ret.sort(cmp=value_sort)
         return dict(user = confirm, user_data = ret)
     else:
         ret = user_data.keys()
@@ -111,7 +119,6 @@ def get_application(**kargs):
     @return: middleware app
     '''
 
-    ServerConfig.initialize(app=bottle.default_app(), **kargs)
+    Server.initialize(app=bottle.default_app(), **kargs)
     logging.debug('Main Web Service Started')
-
-    return ServerConfig.get_application()
+    return Server.get_application()

@@ -9,7 +9,7 @@ import urllib2
 from contextlib import closing
 import json
 
-from common.serverconfig import ServerConfig
+from common.singleton import Server
 
 def webrequest(url):
     try:
@@ -27,19 +27,19 @@ def wrap_links(response):
     '''
     At the moment wrapping links according to DuckDuckGo structure. 
     '''
-    logging.debug("In wrap_links")
+    logging.debug("Request for wrapping links")
     data = json.loads(response['data'])
-    logging.debug("data:%s",type(data))
     try:
         response['data'] = recursive_wrap(data)
     except Exception as e:
         logging.exception("Exception in wrap_links:%s",e)
+    logging.debug("Returning wrapp links")
     return response
 
 def recursive_wrap(data):
     if isinstance(data, dict):
         for key, value in data.iteritems():
-            data[key] = run_replacer(value) if key in ServerConfig.get_config()["Search"]["link_fields"] else recursive_wrap(value)  
+            data[key] = run_replacer(value) if key in Server.get_config()["Search"]["link_fields"] else recursive_wrap(value)  
         return data
     elif isinstance(data, list):
         new_data = map(recursive_wrap, data)
@@ -52,11 +52,15 @@ def run_replacer(val):
         new_val = map(run_replacer, val)
         return new_val
     else:
-        return val.replace(ServerConfig.get_config()["Search"]["match_pattern"], ServerConfig.get_config()["Search"]["wrapping_link"])
+        return val.replace(Server.get_config()["Search"]["match_pattern"], Server.get_config()["Search"]["wrapping_link"])
     
 def auth(user, password):
-    logging.debug("user=%s, password=%s", user, password)
+    
     if user == 'admin' and password == "helpshift":
+        logging.debug("user %s authenticated", user)
         return True
     return False
+
+def value_sort(x,y):
+    return y.values()[0] - x.values()[0]
     

@@ -1,28 +1,52 @@
 #!/bin/bash
 
-USAGE="$0 --host <HostName> [--domain]"
+USAGE="$0 --host <HostName> [--domain] [--dir <ProjectDirectory>] [--force|-f] [--install|-i]"
 HOSTNAME="helpshift"
-
-sudo easy_install bottle==0.10.9
-sudo easy_install beaker
-sudo easy_install redis
-sudo pip install git+git://github.com/bbangert/beaker_extensions.git
-sudo easy_install pymongo
-
+PROJDIR=${PROJDIR:-`pwd`}
+APACHE_PATH=/etc/apache2/sites-available
+INFILE="httpd.config/sample.host.file"
 
 while [ "$#" -gt 0 ]
 do
 	case "$1" in
+		"--install"|"-i") INSTALL="1"; shift;;
 		"--host") 	HOSTNAME=$2; shift 2;;
 		"--domain")  DOMAIN=$2; shift 2;;
+		"--dir")  	PROJDIR=$2; shift 2;;
+		"--force"|"-f") FORCE="1"; shift;;
 		"--help")	echo $USAGE;
 				exit 1;;
-		*) 		echo "$0: invalid parameter $1; Exiting..."
+		*) 		echo "$0: invalid parameter $1; Exiting...";
 			  	echo -e "$USAGE";
 			  	exit 1;;
 	esac
 done
 
 DOMAIN=${DOMAIN:-`hostname -d`}
-echo $DOMAIN
+if [ -n "$INSTALL" ]
+then
+	./install.sh
+fi
+
+if [ -z "$FORCE" -a -e $APACHE_PATH/${HOSTNAME} ]
+then
+    echo File $APACHE_PATH/${HOSTNAME} already exists, exiting..
+    echo -e "$USAGE"
+    exit 1;
+fi
+
+sed -e s:__HOST__:$HOSTNAME:g -e s:__PROJDIR__:$PROJDIR:g -e s:__DOMAIN__:.${DOMAIN}:g $INFILE > /tmp/$HOSTNAME
+sudo cp /tmp/$HOSTNAME $APACHE_PATH/$HOSTNAME
+sudo chmod +r $APACHE_PATH/$HOSTNAME
+echo $APACHE_PATH/$HOSTNAME created.
+
+if [ -e /etc/hosts -a `egrep -wc $HOSTNAME[.]? /etc/hosts` -eq 0 ]
+then
+    sudo sh -c "echo 127.0.0.1	   $HOSTNAME.${DOMAIN} $1 >> /etc/hosts"
+    echo /etc/hosts updated with $HOSTNAME.
+else
+    echo host name $1 already exists in /etc/hosts. Not modifying.
+fi
+
+
 xdg-open "http://$HOSTNAME.$DOMAIN"
