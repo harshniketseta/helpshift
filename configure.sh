@@ -65,6 +65,7 @@ then
     echo $PROJDIR/logs created.
 fi
 sudo chmod -R 777 $PROJDIR/logs
+sudo chmod -R 777 $PROJDIR/data
 
 sudo /etc/init.d/apache2 restart
 if [ $? -ne 0 ]
