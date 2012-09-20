@@ -194,7 +194,7 @@ class Server:
         if op == "inc": #TODO:Maybe it should take a function.And handler can call that function with the lock.That way this part of the code is abstracted.
             now = datetime.now()
             new_data = user_data.get(url, [])
-            new_data.append(("%s/%s/%s"%(now.day, now.month, now.year), now.strftime('%I:%M:%S %p')))
+            new_data.append(str(["%s/%s/%s"%(now.day, now.month, now.year), now.strftime('%I:%M:%S %p')]))
             with cls.lock:
                 user_data[url] = new_data
                 cls.FileDB["user_data"][user] = user_data
@@ -220,7 +220,7 @@ class Server:
         if op == "inc":
             now = datetime.now()
             new_data = cls.FileDB["site_data"].get(url, [])
-            new_data.append([user, "%s/%s/%s"%(now.day, now.month, now.year), now.strftime('%I:%M:%S %p')])
+            new_data.append(str([user, "%s/%s/%s"%(now.day, now.month, now.year), now.strftime('%I:%M:%S %p')]))
             with cls.lock:
                 cls.FileDB["site_data"][url] = new_data 
         with cls.lock:
